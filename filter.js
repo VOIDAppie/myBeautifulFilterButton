@@ -7,13 +7,14 @@ import {
   FlatList,
   Animated,
 } from "react-native";
+import { Audio } from 'expo-av'; // import Expo AV
 
 const FilterButton = ({ options }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [buttonWidth, setButtonWidth] = useState(new Animated.Value(100));
 
-  const handleFilterToggle = () => {
+  const handleFilterToggle = async () => {
     setIsFilterOpen(!isFilterOpen);
 
     if (!isFilterOpen) {
@@ -24,12 +25,21 @@ const FilterButton = ({ options }) => {
         useNativeDriver: false,
       }).start();
     } else {
-        // change button to original kvalue
+      // change button to original value
       Animated.timing(buttonWidth, {
         toValue: 100,
         duration: 10,
         useNativeDriver: false,
       }).start();
+
+      // Play sound effect when dropdown is closed
+      try {
+        const soundObject = new Audio.Sound();
+        await soundObject.loadAsync(require("developers-zone/andrew-tate-breath-air.mp3"));
+        await soundObject.playAsync();
+      } catch (error) {
+        console.warn("Couldn't play sound", error);
+      }
     }
   };
 
@@ -37,21 +47,20 @@ const FilterButton = ({ options }) => {
     // Check if the option is already selected
     if (selectedOptions.includes(option)) {
       // If it is, remove it from the selectedOptions array
-      const newSelectedOptions = selectedOptions.filter((item) => item !== option);
+      const newSelectedOptions = selectedOptions.filter(
+        (item) => item !== option
+      );
       setSelectedOptions(newSelectedOptions);
     } else {
       // If it isn't, add it to the selectedOptions array
       setSelectedOptions([...selectedOptions, option]);
     }
-    
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handleFilterToggle}>
-        <Animated.View
-          style={[styles.button, { width: buttonWidth }]}
-        ></Animated.View>
+        <Animated.View style={[styles.button, { width: buttonWidth }]}></Animated.View>
         <Text style={styles.buttonText}>Filter</Text>
       </TouchableOpacity>
       {isFilterOpen && (
